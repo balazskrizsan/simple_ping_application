@@ -1,6 +1,7 @@
 package com.kbalazsworkds.services;
 
 import com.kbalazsworkds.extensions.ApplicationProperties;
+import com.kbalazsworkds.providers.HttpClientProvider;
 import com.kbalazsworkds.providers.LocalDateTimeProvider;
 import com.kbalazsworkds.tasks.IcmpPingTask;
 import lombok.extern.log4j.Log4j2;
@@ -17,8 +18,12 @@ public class HostMonitorService
 
     private final ProcessRunService processRunService = new ProcessRunService();
     private final LocalDateTimeProvider localDateTimeProvider = new LocalDateTimeProvider();
+    private final HttpClientProvider httpClientProvider = new HttpClientProvider();
 
-    private final ReportService reportService = new ReportService();
+    private final ReportService reportService = new ReportService(
+        httpClientProvider,
+        applicationProperties
+    );
     private final IcmpPingService icmpPingService = new IcmpPingService(
         processRunService,
         reportService,

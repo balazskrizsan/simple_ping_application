@@ -34,11 +34,11 @@ public class ApplicationProperties
 
             properties.load(input);
 
-            pingServiceHosts = Arrays.stream(properties.getProperty("ping_service.hosts").split(","))
+            pingServiceHosts = Arrays.stream(properties.getProperty("pingService.hosts").split(","))
                 .map(String::trim)
                 .toList();
-            pingServiceIcmpDelay = Integer.parseInt(properties.getProperty("ping_service.icmpDelay"));
-            pingServiceReportUrl = properties.getProperty("ping_service.reportUrl");
+            pingServiceIcmpDelay = Integer.parseInt(properties.getProperty("pingService.icmpDelay"));
+            pingServiceReportUrl = properties.getProperty("pingService.reportUrl");
         }
         catch (IOException ex)
         {
