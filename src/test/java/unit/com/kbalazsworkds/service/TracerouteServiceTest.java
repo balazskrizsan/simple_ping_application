@@ -5,7 +5,6 @@ import com.kbalazsworkds.entities.ProcessRunResponse;
 import com.kbalazsworkds.repositories.TaskRunRepository;
 import com.kbalazsworkds.repositories.TracerouteRepository;
 import com.kbalazsworkds.services.ProcessRunService;
-import com.kbalazsworkds.services.ReportService;
 import com.kbalazsworkds.services.TracerouteService;
 import lombok.SneakyThrows;
 import nl.altindag.log.LogCaptor;
@@ -33,9 +32,8 @@ public class TracerouteServiceTest
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
-        TaskRunRepository taskRunRepository = new TaskRunRepository();
-
-        taskRunRepository.setRunning(TRACEROUTE, testedHost);
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(eq(TRACEROUTE), eq(testedHost))).thenReturn(true);
 
         ProcessRunService processRunServiceMock = MockCreateHelper.ProcessRunService_run_tracert(
             testedHost,
@@ -45,12 +43,12 @@ public class TracerouteServiceTest
         TracerouteService tracerouteService = new TracerouteService(
             processRunServiceMock,
             new TracerouteRepository(),
-            taskRunRepository,
+            taskRunRepositoryMock,
             MockCreateHelper.LocalDateTimeProvider_now_default()
         );
 
         // Act
-        try (LogCaptor logCaptor = LogCaptor.forClass(ReportService.class))
+        try (LogCaptor logCaptor = LogCaptor.forClass(TracerouteService.class))
         {
             tracerouteService.trace(testedHost);
 
@@ -58,7 +56,9 @@ public class TracerouteServiceTest
             assertAll(
                 () -> assertThat(logCaptor.getWarnLogs()).isEmpty(),
                 () -> assertThat(logCaptor.getErrorLogs()).isEmpty(),
-                () -> verify(processRunServiceMock, never()).run(any(), any())
+                () -> verify(processRunServiceMock, never()).run(any(), any()),
+                () -> verify(taskRunRepositoryMock, only()).isRunning(eq(TRACEROUTE), eq(testedHost)),
+                () -> verify(taskRunRepositoryMock, never()).setRunning(any(), any())
             );
         }
     }
@@ -93,7 +93,7 @@ public class TracerouteServiceTest
         );
 
         // Act
-        try (LogCaptor logCaptor = LogCaptor.forClass(ReportService.class))
+        try (LogCaptor logCaptor = LogCaptor.forClass(TracerouteService.class))
         {
             tracerouteService.trace(testedHost);
 
@@ -110,7 +110,7 @@ public class TracerouteServiceTest
 
     @Test
     @SneakyThrows
-    public void test_inknownError_saveErrorLog()
+    public void test_unknownError_saveErrorLog()
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
