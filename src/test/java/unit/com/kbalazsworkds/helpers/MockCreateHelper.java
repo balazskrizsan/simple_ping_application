@@ -40,6 +40,18 @@ public class MockCreateHelper
         return mock;
     }
 
+    @SneakyThrows
+    public static ProcessRunService ProcessRunService_run_tracert(
+        @NonNull String host,
+        @NonNull ProcessRunResponse mockedResponse
+    )
+    {
+        ProcessRunService mock = mock(ProcessRunService.class);
+        when(mock.run("tracert", host)).thenReturn(mockedResponse);
+
+        return mock;
+    }
+
     public static ReportService ReportService_default()
     {
         return mock(ReportService.class);
