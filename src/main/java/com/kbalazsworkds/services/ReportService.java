@@ -6,6 +6,7 @@ import com.kbalazsworkds.extensions.ApplicationProperties;
 import com.kbalazsworkds.providers.HttpClientProvider;
 import com.kbalazsworkds.repositories.IcmpPingRepository;
 import com.kbalazsworkds.repositories.TcpPingRepository;
+import com.kbalazsworkds.repositories.TracerouteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -23,6 +24,7 @@ public class ReportService
     private final ApplicationProperties applicationProperties;
     private final TcpPingRepository tcpPingRepository;
     private final IcmpPingRepository icmpPingRepository;
+    private final TracerouteRepository tracerouteRepository;
 
     private static final Gson gson = new Gson();
 
@@ -31,7 +33,8 @@ public class ReportService
         Report report = new Report(
             host,
             icmpPingRepository.get(host) != null ? icmpPingRepository.get(host).result() : "No provided data yet",
-            tcpPingRepository.get(host) != null ? tcpPingRepository.get(host).result() : "No provided data yet"
+            tcpPingRepository.get(host) != null ? tcpPingRepository.get(host).result() : "No provided data yet",
+            tracerouteRepository.get(host) != null ? tracerouteRepository.get(host).result() : "No provided data yet"
         );
 
         log.warn("Ping report: {}", gson.toJson(report));

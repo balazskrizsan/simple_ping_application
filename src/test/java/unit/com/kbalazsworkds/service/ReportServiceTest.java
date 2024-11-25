@@ -9,6 +9,7 @@ import com.kbalazsworkds.extensions.LocalDateTimeAdapter;
 import com.kbalazsworkds.providers.HttpClientProvider;
 import com.kbalazsworkds.repositories.IcmpPingRepository;
 import com.kbalazsworkds.repositories.TcpPingRepository;
+import com.kbalazsworkds.repositories.TracerouteRepository;
 import com.kbalazsworkds.services.ReportService;
 import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.Test;
@@ -46,9 +47,10 @@ public class ReportServiceTest
 
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
+        TracerouteRepository tracerouteRepository = new TracerouteRepository();
 
         String expectedLog =
-            "Ping report: " + gson.toJson(new Report(testedHost, "icmpPingResult", "tcpPingResult"));
+            "Ping report: " + gson.toJson(new Report(testedHost, "icmpPingResult", "tcpPingResult", "tracerouteResult"));
         HttpRequest expectedRequest = HttpRequest.newBuilder()
             .uri(URI.create(applicationProperties.getPingServiceReportUrl()))
             .header("Content-Type", "application/json")
@@ -62,6 +64,10 @@ public class ReportServiceTest
         tcpPingRepository.save(
             testedHost,
             new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "tcpPingResult")
+        );
+        tracerouteRepository.save(
+            testedHost,
+            new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "tracerouteResult")
         );
 
         HttpResponse<String> httpResponseMock = mock(HttpResponse.class);
@@ -78,7 +84,8 @@ public class ReportServiceTest
             httpClientProviderMock,
             applicationProperties,
             tcpPingRepository,
-            icmpPingRepository
+            icmpPingRepository,
+            tracerouteRepository
         );
 
         // Act
@@ -104,10 +111,11 @@ public class ReportServiceTest
 
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
+        TracerouteRepository tracerouteRepository = new TracerouteRepository();
 
         String expectedErrorLogStartWith = "Report HTTP error:";
         String expectedWarnLog =
-            "Ping report: " + gson.toJson(new Report(testedHost, "icmpPingResult", "tcpPingResult"));
+            "Ping report: " + gson.toJson(new Report(testedHost, "icmpPingResult", "tcpPingResult", "tracerouteResult"));
         HttpRequest expectedRequest = HttpRequest.newBuilder()
             .uri(URI.create(applicationProperties.getPingServiceReportUrl()))
             .header("Content-Type", "application/json")
@@ -121,6 +129,10 @@ public class ReportServiceTest
         tcpPingRepository.save(
             testedHost,
             new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "tcpPingResult")
+        );
+        tracerouteRepository.save(
+            testedHost,
+            new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "tracerouteResult")
         );
 
         HttpResponse<String> httpResponseMock = mock(HttpResponse.class);
@@ -137,7 +149,8 @@ public class ReportServiceTest
             httpClientProviderMock,
             applicationProperties,
             tcpPingRepository,
-            icmpPingRepository
+            icmpPingRepository,
+            tracerouteRepository
         );
 
         // Act

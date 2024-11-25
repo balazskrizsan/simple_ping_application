@@ -7,8 +7,10 @@ import com.kbalazsworkds.providers.LocalDateTimeProvider;
 import com.kbalazsworkds.repositories.IcmpPingRepository;
 import com.kbalazsworkds.repositories.TaskRunRepository;
 import com.kbalazsworkds.repositories.TcpPingRepository;
+import com.kbalazsworkds.repositories.TracerouteRepository;
 import com.kbalazsworkds.tasks.IcmpPingTask;
 import com.kbalazsworkds.tasks.TcpPingTask;
+import com.kbalazsworkds.tasks.TracerouteTask;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
@@ -27,14 +29,17 @@ public class HostMonitorService
     private final DurationProvider durationProvider = new DurationProvider();
     private final TcpPingRepository tcpPingRepository = new TcpPingRepository();
     private final IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
+    private final TracerouteRepository tracerouteRepository = new TracerouteRepository();
     private final TaskRunRepository taskRunRepository = new TaskRunRepository();
 
     private final ReportService reportService = new ReportService(
         httpClientProvider,
         applicationProperties,
         tcpPingRepository,
-        icmpPingRepository
+        icmpPingRepository,
+        tracerouteRepository
     );
+
     private final IcmpPingService icmpPingService = new IcmpPingService(
         processRunService,
         reportService,
@@ -51,6 +56,13 @@ public class HostMonitorService
         httpClientProvider,
         durationProvider,
         applicationProperties
+    );
+
+    private final TracerouteService tracerouteService = new TracerouteService(
+        processRunService,
+        tracerouteRepository,
+        taskRunRepository,
+        localDateTimeProvider
     );
 
     public void startMonitoring()
@@ -73,6 +85,13 @@ public class HostMonitorService
                 new TcpPingTask(tcpPingService, host),
                 0,
                 applicationProperties.getPingServiceTcpDelay(),
+                TimeUnit.MILLISECONDS
+            );
+
+            scheduler.scheduleWithFixedDelay(
+                new TracerouteTask(tracerouteService, host),
+                0,
+                applicationProperties.getPingServiceTracerouteDelay(),
                 TimeUnit.MILLISECONDS
             );
         });
