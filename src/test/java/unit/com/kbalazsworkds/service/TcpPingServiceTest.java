@@ -3,14 +3,15 @@ package unit.com.kbalazsworkds.service;
 import com.kbalazsworkds.entities.PingResult;
 import com.kbalazsworkds.extensions.ApplicationProperties;
 import com.kbalazsworkds.providers.HttpClientProvider;
+import com.kbalazsworkds.repositories.TaskRunRepository;
 import com.kbalazsworkds.repositories.TcpPingRepository;
 import com.kbalazsworkds.services.ReportService;
 import com.kbalazsworkds.services.TcpPingService;
-import lombok.SneakyThrows;
 import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.Test;
 import unit.com.kbalazsworkds.helpers.MockCreateHelper;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -34,9 +35,8 @@ public class TcpPingServiceTest
         MockCreateHelper.applicationProperties_default();
 
     @Test
-    @SneakyThrows
     @SuppressWarnings("unchecked")
-    public void ping_successfulPing_prefect()
+    public void ping_successfulPing_prefect() throws IOException, InterruptedException
     {
         // Arrange
         ApplicationProperties applicationProperties = MockCreateHelper.applicationProperties_default();
@@ -62,10 +62,13 @@ public class TcpPingServiceTest
         when(httpClientProviderMock.createClient()).thenReturn(httpClientMock);
 
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
 
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
             tcpPingRepository,
+            taskRunRepositoryMock,
             MockCreateHelper.LocalDateTimeProvider_now_default(),
             httpClientProviderMock,
             MockCreateHelper.DurationProvider_between_10ms(),
@@ -90,9 +93,60 @@ public class TcpPingServiceTest
     }
 
     @Test
-    @SneakyThrows
     @SuppressWarnings("unchecked")
-    public void ping_http404_callsErrorReporter()
+    public void ping_runningPing_wontCreateNew() throws IOException, InterruptedException
+    {
+        // Arrange
+        ApplicationProperties applicationProperties = MockCreateHelper.applicationProperties_default();
+        String testedHost = "localhost";
+
+        String expectedHost = "localhost";
+        String expectedInfoLogStartWith = "Ping is already running";
+
+        ReportService reportServiceMock = MockCreateHelper.ReportService_default();
+
+        HttpResponse<String> httpResponseMock = mock(HttpResponse.class);
+        when(httpResponseMock.statusCode()).thenReturn(200);
+
+        HttpClient httpClientMock = mock(HttpClient.class);
+        when(httpClientMock.send(eq(getExpectedRequest(expectedHost)), any(HttpResponse.BodyHandler.class)))
+            .thenReturn(httpResponseMock);
+
+        HttpClientProvider httpClientProviderMock = mock(HttpClientProvider.class);
+        when(httpClientProviderMock.createClient()).thenReturn(httpClientMock);
+
+        TcpPingRepository tcpPingRepository = new TcpPingRepository();
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(true);
+
+        TcpPingService tcpPingService = new TcpPingService(
+            reportServiceMock,
+            tcpPingRepository,
+            taskRunRepositoryMock,
+            MockCreateHelper.LocalDateTimeProvider_now_default(),
+            httpClientProviderMock,
+            MockCreateHelper.DurationProvider_between_10ms(),
+            applicationProperties
+        );
+
+        // Act
+        try (LogCaptor logCaptor = LogCaptor.forClass(TcpPingService.class))
+        {
+            tcpPingService.ping(testedHost);
+
+            // Assert
+            assertAll(
+                () -> assertThat(logCaptor.getInfoLogs().get(1)).startsWith(expectedInfoLogStartWith),
+                () -> assertThat(logCaptor.getErrorLogs()).isEmpty(),
+                () -> assertThat(logCaptor.getWarnLogs()).isEmpty(),
+                () -> verify(httpClientMock, never()).send(any(), any())
+            );
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void ping_http404_callsErrorReporter() throws IOException, InterruptedException
     {
         // Arrange
         ApplicationProperties applicationProperties = MockCreateHelper.applicationProperties_default();
@@ -119,9 +173,13 @@ public class TcpPingServiceTest
 
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
 
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
             tcpPingRepository,
+            taskRunRepositoryMock,
             MockCreateHelper.LocalDateTimeProvider_now_default(),
             httpClientProviderMock,
             MockCreateHelper.DurationProvider_between_10ms(),
@@ -146,9 +204,8 @@ public class TcpPingServiceTest
     }
 
     @Test
-    @SneakyThrows
     @SuppressWarnings("unchecked")
-    public void ping_slowRequest_callsErrorReporter()
+    public void ping_slowRequest_callsErrorReporter() throws IOException, InterruptedException
     {
         // Arrange
         ApplicationProperties applicationProperties = MockCreateHelper.applicationProperties_default();
@@ -175,9 +232,13 @@ public class TcpPingServiceTest
 
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
 
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
             tcpPingRepository,
+            taskRunRepositoryMock,
             MockCreateHelper.LocalDateTimeProvider_now_default(),
             httpClientProviderMock,
             MockCreateHelper.DurationProvider_between_returnsWith(10000),
@@ -202,9 +263,8 @@ public class TcpPingServiceTest
     }
 
     @Test
-    @SneakyThrows
     @SuppressWarnings("unchecked")
-    public void ping_unknownError_callsErrorReporter()
+    public void ping_unknownError_callsErrorReporter() throws IOException, InterruptedException
     {
         // Arrange
         ApplicationProperties applicationProperties = MockCreateHelper.applicationProperties_default();
@@ -231,9 +291,13 @@ public class TcpPingServiceTest
 
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
 
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
             tcpPingRepository,
+            taskRunRepositoryMock,
             MockCreateHelper.LocalDateTimeProvider_now_default(),
             httpClientProviderMock,
             MockCreateHelper.DurationProvider_between_returnsWith(10000),

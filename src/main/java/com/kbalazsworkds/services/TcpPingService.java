@@ -1,15 +1,18 @@
 package com.kbalazsworkds.services;
 
 import com.kbalazsworkds.entities.PingResult;
+import com.kbalazsworkds.enums.RunTypeEnum;
 import com.kbalazsworkds.extensions.ApplicationProperties;
 import com.kbalazsworkds.providers.DurationProvider;
 import com.kbalazsworkds.providers.HttpClientProvider;
 import com.kbalazsworkds.providers.LocalDateTimeProvider;
+import com.kbalazsworkds.repositories.TaskRunRepository;
 import com.kbalazsworkds.repositories.TcpPingRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -23,6 +26,7 @@ public class TcpPingService
 {
     private final ReportService reportService;
     private final TcpPingRepository tcpPingRepository;
+    private final TaskRunRepository taskRunRepository;
     private final LocalDateTimeProvider localDateTimeProvider;
     private final HttpClientProvider httpClientProvider;
     private final DurationProvider durationProvider;
@@ -32,46 +36,23 @@ public class TcpPingService
     {
         log.info("Ping on host: {}", host);
 
+        synchronized (tcpPingRepository)
+        {
+            if (taskRunRepository.isRunning(RunTypeEnum.TCP_PING, host)) // todo: test
+            {
+                log.info("Ping is already running on host: {}", host);
+
+                return;
+            }
+
+            taskRunRepository.setRunning(RunTypeEnum.TCP_PING, host);
+        }
+
         Instant startTime = Instant.now();
 
         try (HttpClient client = httpClientProvider.createClient())
         {
-            URI uri = URI.create(
-                applicationProperties.getPingServiceTcpProtocol()
-                    + "://"
-                    + host
-                    + applicationProperties.getPingServiceTcpPingPortEndpoint()
-            );
-
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri)
-                .timeout(Duration.ofMillis(applicationProperties.getPingServiceTcpTimeout() + 1))
-                .GET()
-                .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            long duration = durationProvider.between(startTime, Instant.now()).toMillis();
-
-            String lastResult = "Host: %s, HTTP Status: %d, Response Time: %sms".formatted(host, response.statusCode(), duration);
-            log.info("Host: {}, HTTP Status: {}, Response Time: {}ms", host, response.statusCode(), duration);
-
-            boolean hasError = hasError(response, duration);
-
-            tcpPingRepository.save(host, new PingResult(
-                hasError,
-                localDateTimeProvider.now(),
-                lastResult
-            ));
-
-            if (hasError)
-            {
-                log.warn("Ping error on host: {}", host);
-
-                reportService.report(host);
-            }
-
-            log.info("Ping result: {}, {}", host, response);
+            pingLogic(host, client, startTime);
         }
         catch (Exception e)
         {
@@ -85,6 +66,54 @@ public class TcpPingService
 
             reportService.report(host);
         }
+        finally
+        {
+            taskRunRepository.finish(RunTypeEnum.TCP_PING, host);
+        }
+    }
+
+    private void pingLogic(
+        @NonNull String host,
+        @NonNull HttpClient client,
+        @NonNull Instant startTime
+    ) throws IOException, InterruptedException
+    {
+        URI uri = URI.create(
+            applicationProperties.getPingServiceTcpProtocol()
+                + "://"
+                + host
+                + applicationProperties.getPingServiceTcpPingPortEndpoint()
+        );
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(uri)
+            .timeout(Duration.ofMillis(applicationProperties.getPingServiceTcpTimeout() + 1))
+            .GET()
+            .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        long duration = durationProvider.between(startTime, Instant.now()).toMillis();
+
+        String lastResult = "Host: %s, HTTP Status: %d, Response Time: %sms".formatted(host, response.statusCode(), duration);
+        log.info("Host: {}, HTTP Status: {}, Response Time: {}ms", host, response.statusCode(), duration);
+
+        boolean hasError = hasError(response, duration);
+
+        tcpPingRepository.save(host, new PingResult(
+            hasError,
+            localDateTimeProvider.now(),
+            lastResult
+        ));
+
+        if (hasError)
+        {
+            log.warn("Ping error on host: {}", host);
+
+            reportService.report(host);
+        }
+
+        log.info("Ping result: {}, {}", host, response);
     }
 
     private boolean hasError(@NonNull HttpResponse<String> response, long duration)
