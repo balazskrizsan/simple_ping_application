@@ -5,6 +5,7 @@ import com.kbalazsworkds.extensions.ApplicationProperties;
 import com.kbalazsworkds.providers.DurationProvider;
 import com.kbalazsworkds.providers.HttpClientProvider;
 import com.kbalazsworkds.providers.LocalDateTimeProvider;
+import com.kbalazsworkds.repositories.TcpPingRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -15,20 +16,17 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 @Log4j2
 public class TcpPingService
 {
     private final ReportService reportService;
+    private final TcpPingRepository tcpPingRepository;
     private final LocalDateTimeProvider localDateTimeProvider;
     private final HttpClientProvider httpClientProvider;
     private final DurationProvider durationProvider;
     private final ApplicationProperties applicationProperties;
-
-    public static final Map<String, PingResult> LAST_TCP_RESULTS = new ConcurrentHashMap<>();
 
     public void ping(@NonNull String host)
     {
@@ -60,7 +58,7 @@ public class TcpPingService
 
             boolean hasError = hasError(response, duration);
 
-            LAST_TCP_RESULTS.put(host, new PingResult(
+            tcpPingRepository.save(host, new PingResult(
                 hasError,
                 localDateTimeProvider.now(),
                 lastResult
@@ -79,7 +77,7 @@ public class TcpPingService
         {
             log.error("Failed to ping host: {}", host, e);
 
-            LAST_TCP_RESULTS.put(host, new PingResult(
+            tcpPingRepository.save(host, new PingResult(
                 true,
                 localDateTimeProvider.now(),
                 "Unknown error, check the app log."

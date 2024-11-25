@@ -3,6 +3,7 @@ package unit.com.kbalazsworkds.service;
 import com.kbalazsworkds.entities.PingResult;
 import com.kbalazsworkds.extensions.ApplicationProperties;
 import com.kbalazsworkds.providers.HttpClientProvider;
+import com.kbalazsworkds.repositories.TcpPingRepository;
 import com.kbalazsworkds.services.ReportService;
 import com.kbalazsworkds.services.TcpPingService;
 import lombok.SneakyThrows;
@@ -17,7 +18,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import static com.kbalazsworkds.services.TcpPingService.LAST_TCP_RESULTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,8 +61,11 @@ public class TcpPingServiceTest
         HttpClientProvider httpClientProviderMock = mock(HttpClientProvider.class);
         when(httpClientProviderMock.createClient()).thenReturn(httpClientMock);
 
+        TcpPingRepository tcpPingRepository = new TcpPingRepository();
+
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
+            tcpPingRepository,
             MockCreateHelper.LocalDateTimeProvider_now_default(),
             httpClientProviderMock,
             MockCreateHelper.DurationProvider_between_10ms(),
@@ -76,7 +79,7 @@ public class TcpPingServiceTest
 
             // Assert
             assertAll(
-                () -> assertThat(LAST_TCP_RESULTS.get(expectedHost))
+                () -> assertThat(tcpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
                     .isEqualTo(expectedResult),
                 () -> assertThat(logCaptor.getErrorLogs()).isEmpty(),
@@ -114,8 +117,11 @@ public class TcpPingServiceTest
         HttpClientProvider httpClientProviderMock = mock(HttpClientProvider.class);
         when(httpClientProviderMock.createClient()).thenReturn(httpClientMock);
 
+        TcpPingRepository tcpPingRepository = new TcpPingRepository();
+
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
+            tcpPingRepository,
             MockCreateHelper.LocalDateTimeProvider_now_default(),
             httpClientProviderMock,
             MockCreateHelper.DurationProvider_between_10ms(),
@@ -129,7 +135,7 @@ public class TcpPingServiceTest
 
             // Assert
             assertAll(
-                () -> assertThat(LAST_TCP_RESULTS.get(expectedHost))
+                () -> assertThat(tcpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
                     .isEqualTo(expectedResult),
                 () -> assertThat(logCaptor.getErrorLogs()).isEmpty(),
@@ -167,8 +173,11 @@ public class TcpPingServiceTest
         HttpClientProvider httpClientProviderMock = mock(HttpClientProvider.class);
         when(httpClientProviderMock.createClient()).thenReturn(httpClientMock);
 
+        TcpPingRepository tcpPingRepository = new TcpPingRepository();
+
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
+            tcpPingRepository,
             MockCreateHelper.LocalDateTimeProvider_now_default(),
             httpClientProviderMock,
             MockCreateHelper.DurationProvider_between_returnsWith(10000),
@@ -182,7 +191,7 @@ public class TcpPingServiceTest
 
             // Assert
             assertAll(
-                () -> assertThat(LAST_TCP_RESULTS.get(expectedHost))
+                () -> assertThat(tcpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
                     .isEqualTo(expectedResult),
                 () -> assertThat(logCaptor.getErrorLogs()).isEmpty(),
@@ -220,8 +229,11 @@ public class TcpPingServiceTest
         HttpClientProvider httpClientProviderMock = mock(HttpClientProvider.class);
         when(httpClientProviderMock.createClient()).thenReturn(httpClientMock);
 
+        TcpPingRepository tcpPingRepository = new TcpPingRepository();
+
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
+            tcpPingRepository,
             MockCreateHelper.LocalDateTimeProvider_now_default(),
             httpClientProviderMock,
             MockCreateHelper.DurationProvider_between_returnsWith(10000),
@@ -235,7 +247,7 @@ public class TcpPingServiceTest
 
             // Assert
             assertAll(
-                () -> assertThat(LAST_TCP_RESULTS.get(expectedHost))
+                () -> assertThat(tcpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
                     .isEqualTo(expectedResult),
                 () -> assertThat(logCaptor.getErrorLogs()).isNotEmpty(),

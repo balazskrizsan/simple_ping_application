@@ -7,9 +7,9 @@ import com.kbalazsworkds.entities.Report;
 import com.kbalazsworkds.extensions.ApplicationProperties;
 import com.kbalazsworkds.extensions.LocalDateTimeAdapter;
 import com.kbalazsworkds.providers.HttpClientProvider;
+import com.kbalazsworkds.repositories.TcpPingRepository;
 import com.kbalazsworkds.services.IcmpPingService;
 import com.kbalazsworkds.services.ReportService;
-import com.kbalazsworkds.services.TcpPingService;
 import lombok.SneakyThrows;
 import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.Test;
@@ -45,6 +45,8 @@ public class ReportServiceTest
         ApplicationProperties applicationProperties = MockCreateHelper.applicationProperties_default();
         String testedHost = "localhost.balazskrizsan.com";
 
+        TcpPingRepository tcpPingRepository = new TcpPingRepository();
+
         String expectedLog =
             "Ping report: " + gson.toJson(new Report(testedHost, "icmpPingResult", "tcpPingResult"));
         HttpRequest expectedRequest = HttpRequest.newBuilder()
@@ -57,7 +59,7 @@ public class ReportServiceTest
             testedHost,
             new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "icmpPingResult")
         );
-        TcpPingService.LAST_TCP_RESULTS.put(
+        tcpPingRepository.save(
             testedHost,
             new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "tcpPingResult")
         );
@@ -72,7 +74,11 @@ public class ReportServiceTest
         HttpClientProvider httpClientProviderMock = mock(HttpClientProvider.class);
         when(httpClientProviderMock.createClient()).thenReturn(httpClientMock);
 
-        ReportService reportService = new ReportService(httpClientProviderMock, applicationProperties);
+        ReportService reportService = new ReportService(
+            httpClientProviderMock,
+            applicationProperties,
+            tcpPingRepository
+        );
 
         // Act
         try (LogCaptor logCaptor = LogCaptor.forClass(ReportService.class))
@@ -96,6 +102,8 @@ public class ReportServiceTest
         ApplicationProperties applicationProperties = MockCreateHelper.applicationProperties_default();
         String testedHost = "localhost.balazskrizsan.com";
 
+        TcpPingRepository tcpPingRepository = new TcpPingRepository();
+
         String expectedErrorLogStartWith = "Report HTTP error:";
         String expectedWarnLog =
             "Ping report: " + gson.toJson(new Report(testedHost, "icmpPingResult", "tcpPingResult"));
@@ -109,7 +117,7 @@ public class ReportServiceTest
             testedHost,
             new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "icmpPingResult")
         );
-        TcpPingService.LAST_TCP_RESULTS.put(
+        tcpPingRepository.save(
             testedHost,
             new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "tcpPingResult")
         );
@@ -124,7 +132,11 @@ public class ReportServiceTest
         HttpClientProvider httpClientProviderMock = mock(HttpClientProvider.class);
         when(httpClientProviderMock.createClient()).thenReturn(httpClientMock);
 
-        ReportService reportService = new ReportService(httpClientProviderMock, applicationProperties);
+        ReportService reportService = new ReportService(
+            httpClientProviderMock,
+            applicationProperties,
+            tcpPingRepository
+        );
 
         // Act
         try (LogCaptor logCaptor = LogCaptor.forClass(ReportService.class))
