@@ -1,9 +1,11 @@
 package com.kbalazsworkds.services;
 
 import com.kbalazsworkds.extensions.ApplicationProperties;
+import com.kbalazsworkds.providers.DurationProvider;
 import com.kbalazsworkds.providers.HttpClientProvider;
 import com.kbalazsworkds.providers.LocalDateTimeProvider;
 import com.kbalazsworkds.tasks.IcmpPingTask;
+import com.kbalazsworkds.tasks.TcpPingTask;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
@@ -19,6 +21,7 @@ public class HostMonitorService
     private final ProcessRunService processRunService = new ProcessRunService();
     private final LocalDateTimeProvider localDateTimeProvider = new LocalDateTimeProvider();
     private final HttpClientProvider httpClientProvider = new HttpClientProvider();
+    private final DurationProvider durationProvider = new DurationProvider();
 
     private final ReportService reportService = new ReportService(
         httpClientProvider,
@@ -28,6 +31,14 @@ public class HostMonitorService
         processRunService,
         reportService,
         localDateTimeProvider
+    );
+
+    private final TcpPingService tcpPingService = new TcpPingService(
+        reportService,
+        localDateTimeProvider,
+        httpClientProvider,
+        durationProvider,
+        applicationProperties
     );
 
     public void startMonitoring()
@@ -40,7 +51,17 @@ public class HostMonitorService
 
         applicationProperties.getPingServiceHosts().forEach(host -> {
             scheduler.scheduleWithFixedDelay(
-                new IcmpPingTask(icmpPingService, host), 0, applicationProperties.getPingServiceIcmpDelay(), TimeUnit.MILLISECONDS
+                new IcmpPingTask(icmpPingService, host),
+                0,
+                applicationProperties.getPingServiceIcmpDelay(),
+                TimeUnit.MILLISECONDS
+            );
+
+            scheduler.scheduleWithFixedDelay(
+                new TcpPingTask(tcpPingService, host),
+                0,
+                applicationProperties.getPingServiceTcpDelay(),
+                TimeUnit.MILLISECONDS
             );
         });
 
