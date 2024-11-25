@@ -3,54 +3,40 @@ package com.kbalazsworkds.extensions;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 @Getter
 @Log4j2
 public class ApplicationProperties
 {
-    private int pingServiceTcpDelay;
-    private int pingServiceTcpTimeout;
-    private String pingServiceTcpProtocol;
-    private String pingServiceTcpPingPortEndpoint;
-    private List<String> pingServiceHosts;
-    private int pingServiceIcmpDelay;
-    private String pingServiceReportUrl;
+    private final int pingServiceTcpDelay;
+    private final int pingServiceTcpTimeout;
+    private final String pingServiceTcpProtocol;
+    private final String pingServiceTcpPingPortEndpoint;
+    private final List<String> pingServiceHosts;
+    private final int pingServiceIcmpDelay;
+    private final String pingServiceReportUrl;
 
     public ApplicationProperties()
     {
-        Properties properties = new Properties();
+        pingServiceHosts = Arrays.stream(System.getenv("PING_SERVICE__HOSTS").split(","))
+            .map(String::trim)
+            .toList();
+        pingServiceReportUrl = System.getenv("PING_SERVICE__REPORT_URL");
+        pingServiceIcmpDelay = Integer.parseInt(System.getenv("PING_SERVICE__ICMP_DELAY"));
+        pingServiceTcpDelay = Integer.parseInt(System.getenv("PING_SERVICE__TCP_DELAY"));
+        pingServiceTcpTimeout = Integer.parseInt(System.getenv("PING_SERVICE__TCP_TIMEOUT"));
+        pingServiceTcpProtocol = System.getenv("PING_SERVICE__TCP_PROTOCOL");
+        pingServiceTcpPingPortEndpoint = System.getenv("PING_SERVICE__TCP_PING_PORT_END_POINT");
+        log.info("Application properties loaded");
+        log.info(" - env var: pingServiceHosts: {}", pingServiceHosts);
+        log.info(" - env var: pingServiceReportUrl: {}", pingServiceReportUrl);
+        log.info(" - env var: pingServiceIcmpDelay: {}", pingServiceIcmpDelay);
+        log.info(" - env var: pingServiceTcpDelay: {}", pingServiceTcpDelay);
+        log.info(" - env var: pingServiceTcpTimeout: {}", pingServiceTcpTimeout);
+        log.info(" - env var: pingServiceTcpProtocol: {}", pingServiceTcpProtocol);
+        log.info(" - env var: pingServiceTcpPingPortEndpoint: {}", pingServiceTcpPingPortEndpoint);
 
-        try (InputStream input = ApplicationProperties.class.getClassLoader()
-            .getResourceAsStream("application.properties")
-        )
-        {
-            if (input == null)
-            {
-                log.error("Unable to find application.properties");
-
-                return;
-            }
-
-            properties.load(input);
-
-            pingServiceTcpDelay = Integer.parseInt(properties.getProperty("pingService.tcpDelay"));
-            pingServiceTcpTimeout = Integer.parseInt(properties.getProperty("pingService.tcpTimeout"));
-            pingServiceTcpProtocol = properties.getProperty("pingService.tcpProtocol");
-            pingServiceTcpPingPortEndpoint = properties.getProperty("pingService.tcpPingPortEndpoint");
-            pingServiceHosts = Arrays.stream(properties.getProperty("pingService.hosts").split(","))
-                .map(String::trim)
-                .toList();
-            pingServiceIcmpDelay = Integer.parseInt(properties.getProperty("pingService.icmpDelay"));
-            pingServiceReportUrl = properties.getProperty("pingService.reportUrl");
-        }
-        catch (IOException ex)
-        {
-            log.error("ApplicationPropertiesService exception occurred", ex);
-        }
     }
 }
