@@ -2,15 +2,18 @@ package unit.com.kbalazsworkds.helpers;
 
 import com.kbalazsworkds.entities.ProcessRunResponse;
 import com.kbalazsworkds.extensions.ApplicationProperties;
+import com.kbalazsworkds.providers.DurationProvider;
 import com.kbalazsworkds.providers.LocalDateTimeProvider;
 import com.kbalazsworkds.services.ProcessRunService;
 import com.kbalazsworkds.services.ReportService;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -46,10 +49,30 @@ public class MockCreateHelper
     {
         ApplicationProperties ap = mock(ApplicationProperties.class);
 
-        when(ap.getPingServiceIcmpDelay()).thenReturn(1000);
+        when(ap.getPingServiceTcpDelay()).thenReturn(1000);
+        when(ap.getPingServiceTcpTimeout()).thenReturn(1000);
+        when(ap.getPingServiceTcpProtocol()).thenReturn("https");
+        when(ap.getPingServiceTcpPingPortEndpoint()).thenReturn(":1234/ping");
         when(ap.getPingServiceHosts()).thenReturn(List.of("localhost1", "localhost2", "localhost3"));
+        when(ap.getPingServiceIcmpDelay()).thenReturn(1000);
         when(ap.getPingServiceReportUrl()).thenReturn("http://localhost:8080/report");
 
         return ap;
+    }
+
+    public static DurationProvider DurationProvider_between_10ms()
+    {
+        DurationProvider mock = mock(DurationProvider.class);
+        when(mock.between(any(), any())).thenReturn(Duration.ofMillis(10));
+
+        return mock;
+    }
+
+    public static DurationProvider DurationProvider_between_returnsWith(long returnValue)
+    {
+        DurationProvider mock = mock(DurationProvider.class);
+        when(mock.between(any(), any())).thenReturn(Duration.ofMillis(returnValue));
+
+        return mock;
     }
 }

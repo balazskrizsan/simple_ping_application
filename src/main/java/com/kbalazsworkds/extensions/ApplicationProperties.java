@@ -13,6 +13,10 @@ import java.util.Properties;
 @Log4j2
 public class ApplicationProperties
 {
+    private int pingServiceTcpDelay;
+    private int pingServiceTcpTimeout;
+    private String pingServiceTcpProtocol;
+    private String pingServiceTcpPingPortEndpoint;
     private List<String> pingServiceHosts;
     private int pingServiceIcmpDelay;
     private String pingServiceReportUrl;
@@ -34,6 +38,10 @@ public class ApplicationProperties
 
             properties.load(input);
 
+            pingServiceTcpDelay = Integer.parseInt(properties.getProperty("pingService.tcpDelay"));
+            pingServiceTcpTimeout = Integer.parseInt(properties.getProperty("pingService.tcpTimeout"));
+            pingServiceTcpProtocol = properties.getProperty("pingService.tcpProtocol");
+            pingServiceTcpPingPortEndpoint = properties.getProperty("pingService.tcpPingPortEndpoint");
             pingServiceHosts = Arrays.stream(properties.getProperty("pingService.hosts").split(","))
                 .map(String::trim)
                 .toList();
