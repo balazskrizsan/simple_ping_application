@@ -2,8 +2,10 @@ package com.kbalazsworkds.services;
 
 import com.kbalazsworkds.entities.PingResult;
 import com.kbalazsworkds.entities.ProcessRunResponse;
+import com.kbalazsworkds.enums.RunTypeEnum;
 import com.kbalazsworkds.providers.LocalDateTimeProvider;
 import com.kbalazsworkds.repositories.IcmpPingRepository;
+import com.kbalazsworkds.repositories.TaskRunRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -16,13 +18,26 @@ public class IcmpPingService
     private final ReportService reportService;
     private final IcmpPingRepository icmpPingRepository;
     private final LocalDateTimeProvider localDateTimeProvider;
+    private final TaskRunRepository taskRunRepository;
 
     public void ping(@NonNull String host)
     {
+        log.info("Ping on host: {}", host);
+
+        synchronized (taskRunRepository)
+        {
+            if (taskRunRepository.isRunning(RunTypeEnum.ICMP_PING, host))
+            {
+                log.info("Ping is already running on host: {}", host);
+
+                return;
+            }
+
+            taskRunRepository.setRunning(RunTypeEnum.ICMP_PING, host);
+        }
+
         try
         {
-            log.info("Ping on host: {}", host);
-
             ProcessRunResponse response = processRunService.run("ping", "-n", "5", host);
             boolean hasError = hasError(response);
 
@@ -45,6 +60,10 @@ public class IcmpPingService
         {
             log.error("Failed to ping host: {}", host, e);
             // @todo: set last result as unknown and call report
+        }
+        finally
+        {
+            taskRunRepository.finish(RunTypeEnum.ICMP_PING, host);
         }
     }
 

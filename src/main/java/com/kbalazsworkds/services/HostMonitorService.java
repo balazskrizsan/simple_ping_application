@@ -39,7 +39,8 @@ public class HostMonitorService
         processRunService,
         reportService,
         icmpPingRepository,
-        localDateTimeProvider
+        localDateTimeProvider,
+        taskRunRepository
     );
 
     private final TcpPingService tcpPingService = new TcpPingService(

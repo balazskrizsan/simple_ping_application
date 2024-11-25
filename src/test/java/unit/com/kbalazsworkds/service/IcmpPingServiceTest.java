@@ -3,7 +3,9 @@ package unit.com.kbalazsworkds.service;
 import com.kbalazsworkds.entities.PingResult;
 import com.kbalazsworkds.entities.ProcessRunResponse;
 import com.kbalazsworkds.repositories.IcmpPingRepository;
+import com.kbalazsworkds.repositories.TaskRunRepository;
 import com.kbalazsworkds.services.IcmpPingService;
+import com.kbalazsworkds.services.ProcessRunService;
 import com.kbalazsworkds.services.ReportService;
 import lombok.SneakyThrows;
 import nl.altindag.log.LogCaptor;
@@ -14,11 +16,14 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class IcmpPingServiceTest
 {
@@ -63,11 +68,15 @@ public class IcmpPingServiceTest
         ReportService reportServiceMock = MockCreateHelper.ReportService_default();
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0)),
             reportServiceMock,
             icmpPingRepository,
-            MockCreateHelper.LocalDateTimeProvider_now_default()
+            MockCreateHelper.LocalDateTimeProvider_now_default(),
+            taskRunRepositoryMock
         );
 
         // Act - Assert
@@ -82,6 +91,46 @@ public class IcmpPingServiceTest
                 () -> assertThat(logCaptor.getErrorLogs()).isEmpty(),
                 () -> assertThat(logCaptor.getWarnLogs()).isEmpty(),
                 () -> verify(reportServiceMock, never()).report(anyString())
+            );
+        }
+    }
+
+    @Test
+    @SneakyThrows
+    public void ping_runningPing_wontStartNew()
+    {
+        // Arrange
+        String testedHost = "localhost.balazskrizsan.com";
+
+        String mockedResponse = "ping";
+
+        String exceptedLogStartsWith = "Ping is already running on host:";
+
+        ReportService reportServiceMock = MockCreateHelper.ReportService_default();
+        IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
+
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(true);
+
+        ProcessRunService processRunServiceMock = MockCreateHelper
+            .ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0));
+
+        IcmpPingService icmpPingService = new IcmpPingService(
+            processRunServiceMock,
+            reportServiceMock,
+            icmpPingRepository,
+            MockCreateHelper.LocalDateTimeProvider_now_default(),
+            taskRunRepositoryMock
+        );
+
+        // Act - Assert
+        try (LogCaptor logCaptor = LogCaptor.forClass(IcmpPingService.class))
+        {
+            icmpPingService.ping(testedHost);
+
+            assertAll(
+                () -> assertThat(logCaptor.getInfoLogs().get(1)).startsWith(exceptedLogStartsWith),
+                () -> verify(processRunServiceMock, never()).run(anyString())
             );
         }
     }
@@ -129,11 +178,15 @@ public class IcmpPingServiceTest
 
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0)),
             reportServiceMock,
             icmpPingRepository,
-            MockCreateHelper.LocalDateTimeProvider_now_default()
+            MockCreateHelper.LocalDateTimeProvider_now_default(),
+            taskRunRepositoryMock
         );
 
         // Act - Assert
@@ -195,11 +248,15 @@ public class IcmpPingServiceTest
 
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0)),
             reportServiceMock,
             icmpPingRepository,
-            MockCreateHelper.LocalDateTimeProvider_now_default()
+            MockCreateHelper.LocalDateTimeProvider_now_default(),
+            taskRunRepositoryMock
         );
 
         // Act - Assert
@@ -261,11 +318,15 @@ public class IcmpPingServiceTest
 
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 1)),
             reportServiceMock,
             icmpPingRepository,
-            MockCreateHelper.LocalDateTimeProvider_now_default()
+            MockCreateHelper.LocalDateTimeProvider_now_default(),
+            taskRunRepositoryMock
         );
 
         // Act - Assert
