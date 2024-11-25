@@ -22,16 +22,6 @@ public class IcmpPingService
 
     public void ping(@NonNull String host)
     {
-        synchronized (LAST_ICMP_RESULTS)
-        {
-            if (LAST_ICMP_RESULTS.containsKey(host) && LAST_ICMP_RESULTS.get(host).running())
-            {
-                log.warn("Ping already in progress for host: {}", host); // todo: test
-
-                return;
-            }
-        }
-
         try
         {
             log.info("Ping on host: {}", host);
@@ -40,7 +30,6 @@ public class IcmpPingService
             boolean hasError = hasError(response);
 
             LAST_ICMP_RESULTS.put(host, new PingResult(
-                false,
                 hasError,
                 localDateTimeProvider.now(),
                 response.result())
@@ -58,6 +47,7 @@ public class IcmpPingService
         catch (Exception e)
         {
             log.error("Failed to ping host: {}", host, e);
+            // @todo: set last result as unknown and call report
         }
     }
 
