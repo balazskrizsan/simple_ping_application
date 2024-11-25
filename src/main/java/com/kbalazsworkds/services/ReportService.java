@@ -27,7 +27,9 @@ public class ReportService
         Report report = new Report(
             host,
             IcmpPingService.LAST_ICMP_RESULTS.containsKey(host) ?
-                IcmpPingService.LAST_ICMP_RESULTS.get(host).result() : "No provided data yet"
+                IcmpPingService.LAST_ICMP_RESULTS.get(host).result() : "No provided data yet",
+            TcpPingService.LAST_TCP_RESULTS.containsKey(host) ?
+                TcpPingService.LAST_TCP_RESULTS.get(host).result() : "No provided data yet"
         );
 
         log.warn("Ping report: {}", gson.toJson(report));

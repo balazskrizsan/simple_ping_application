@@ -4,7 +4,8 @@ import lombok.NonNull;
 
 public record Report(
     @NonNull String host,
-    @NonNull String icmpPing
+    @NonNull String icmpPing,
+    @NonNull String tcpPing
 )
 {
 }
