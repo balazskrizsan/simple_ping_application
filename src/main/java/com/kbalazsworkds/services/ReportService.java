@@ -3,7 +3,6 @@ package com.kbalazsworkds.services;
 import com.google.gson.Gson;
 import com.kbalazsworkds.entities.Report;
 import com.kbalazsworkds.extensions.ApplicationProperties;
-import com.kbalazsworkds.extensions.FileWarnLevel;
 import com.kbalazsworkds.providers.HttpClientProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -27,10 +26,11 @@ public class ReportService
     {
         Report report = new Report(
             host,
-            IcmpPingService.LAST_ICMP_RESULTS.get(host).result()
+            IcmpPingService.LAST_ICMP_RESULTS.containsKey(host) ?
+                IcmpPingService.LAST_ICMP_RESULTS.get(host).result() : "No provided data yet"
         );
 
-        log.log(FileWarnLevel.FILE_WARN, "{}", gson.toJson(report));
+        log.warn("Ping report: {}", gson.toJson(report));
 
         try (HttpClient client = httpClientProvider.createClient())
         {
@@ -44,7 +44,7 @@ public class ReportService
 
             if (response.statusCode() != 200)
             {
-                log.error("Report HTTP error: {}", response); // todo: test
+                log.error("Report HTTP error: {}", response);
             }
         }
         catch (IOException e)

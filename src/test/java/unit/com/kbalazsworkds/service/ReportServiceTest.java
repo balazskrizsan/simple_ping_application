@@ -44,7 +44,7 @@ public class ReportServiceTest
         ApplicationProperties applicationProperties = MockCreateHelper.applicationProperties_default();
         String testedHost = "localhost.balazskrizsan.com";
 
-        String expectedLog = gson.toJson(new Report(testedHost, "icmpPingResult"));
+        String expectedLog = "Ping report: " + gson.toJson(new Report(testedHost, "icmpPingResult"));
         HttpRequest expectedRequest = HttpRequest.newBuilder()
             .uri(URI.create(applicationProperties.getPingServiceReportUrl()))
             .header("Content-Type", "application/json")
@@ -53,7 +53,7 @@ public class ReportServiceTest
 
         IcmpPingService.LAST_ICMP_RESULTS.put(
             testedHost,
-            new PingResult(false, false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "icmpPingResult")
+            new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "icmpPingResult")
         );
 
         HttpResponse<String> httpResponseMock = mock(HttpResponse.class);
@@ -91,7 +91,7 @@ public class ReportServiceTest
         String testedHost = "localhost.balazskrizsan.com";
 
         String expectedErrorLogStartWith = "Report HTTP error:";
-        String expectedWarnLog = gson.toJson(new Report(testedHost, "icmpPingResult"));
+        String expectedWarnLog = "Ping report: " + gson.toJson(new Report(testedHost, "icmpPingResult"));
         HttpRequest expectedRequest = HttpRequest.newBuilder()
             .uri(URI.create(applicationProperties.getPingServiceReportUrl()))
             .header("Content-Type", "application/json")
@@ -100,7 +100,7 @@ public class ReportServiceTest
 
         IcmpPingService.LAST_ICMP_RESULTS.put(
             testedHost,
-            new PingResult(false, false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "icmpPingResult")
+            new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "icmpPingResult")
         );
 
         HttpResponse<String> httpResponseMock = mock(HttpResponse.class);
