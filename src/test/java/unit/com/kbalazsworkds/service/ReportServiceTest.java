@@ -7,8 +7,8 @@ import com.kbalazsworkds.entities.Report;
 import com.kbalazsworkds.extensions.ApplicationProperties;
 import com.kbalazsworkds.extensions.LocalDateTimeAdapter;
 import com.kbalazsworkds.providers.HttpClientProvider;
+import com.kbalazsworkds.repositories.IcmpPingRepository;
 import com.kbalazsworkds.repositories.TcpPingRepository;
-import com.kbalazsworkds.services.IcmpPingService;
 import com.kbalazsworkds.services.ReportService;
 import lombok.SneakyThrows;
 import nl.altindag.log.LogCaptor;
@@ -46,6 +46,7 @@ public class ReportServiceTest
         String testedHost = "localhost.balazskrizsan.com";
 
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
+        IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
         String expectedLog =
             "Ping report: " + gson.toJson(new Report(testedHost, "icmpPingResult", "tcpPingResult"));
@@ -55,7 +56,7 @@ public class ReportServiceTest
             .POST(HttpRequest.BodyPublishers.ofString(expectedLog))
             .build();
 
-        IcmpPingService.LAST_ICMP_RESULTS.put(
+        icmpPingRepository.save(
             testedHost,
             new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "icmpPingResult")
         );
@@ -77,7 +78,8 @@ public class ReportServiceTest
         ReportService reportService = new ReportService(
             httpClientProviderMock,
             applicationProperties,
-            tcpPingRepository
+            tcpPingRepository,
+            icmpPingRepository
         );
 
         // Act
@@ -103,6 +105,7 @@ public class ReportServiceTest
         String testedHost = "localhost.balazskrizsan.com";
 
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
+        IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
         String expectedErrorLogStartWith = "Report HTTP error:";
         String expectedWarnLog =
@@ -113,7 +116,7 @@ public class ReportServiceTest
             .POST(HttpRequest.BodyPublishers.ofString(expectedWarnLog))
             .build();
 
-        IcmpPingService.LAST_ICMP_RESULTS.put(
+        icmpPingRepository.save(
             testedHost,
             new PingResult(false, LocalDateTime.of(2020, 1, 2, 3, 4, 5), "icmpPingResult")
         );
@@ -135,7 +138,8 @@ public class ReportServiceTest
         ReportService reportService = new ReportService(
             httpClientProviderMock,
             applicationProperties,
-            tcpPingRepository
+            tcpPingRepository,
+            icmpPingRepository
         );
 
         // Act

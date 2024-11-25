@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.kbalazsworkds.entities.Report;
 import com.kbalazsworkds.extensions.ApplicationProperties;
 import com.kbalazsworkds.providers.HttpClientProvider;
+import com.kbalazsworkds.repositories.IcmpPingRepository;
 import com.kbalazsworkds.repositories.TcpPingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -21,6 +22,7 @@ public class ReportService
     private final HttpClientProvider httpClientProvider;
     private final ApplicationProperties applicationProperties;
     private final TcpPingRepository tcpPingRepository;
+    private final IcmpPingRepository icmpPingRepository;
 
     private static final Gson gson = new Gson();
 
@@ -28,8 +30,7 @@ public class ReportService
     {
         Report report = new Report(
             host,
-            IcmpPingService.LAST_ICMP_RESULTS.containsKey(host) ?
-                IcmpPingService.LAST_ICMP_RESULTS.get(host).result() : "No provided data yet",
+            icmpPingRepository.get(host) != null ? icmpPingRepository.get(host).result() : "No provided data yet",
             tcpPingRepository.get(host) != null ? tcpPingRepository.get(host).result() : "No provided data yet"
         );
 

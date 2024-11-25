@@ -2,17 +2,16 @@ package unit.com.kbalazsworkds.service;
 
 import com.kbalazsworkds.entities.PingResult;
 import com.kbalazsworkds.entities.ProcessRunResponse;
+import com.kbalazsworkds.repositories.IcmpPingRepository;
 import com.kbalazsworkds.services.IcmpPingService;
 import com.kbalazsworkds.services.ReportService;
 import lombok.SneakyThrows;
 import nl.altindag.log.LogCaptor;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import unit.com.kbalazsworkds.helpers.MockCreateHelper;
 
 import java.time.LocalDateTime;
 
-import static com.kbalazsworkds.services.IcmpPingService.LAST_ICMP_RESULTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -23,12 +22,6 @@ import static org.mockito.Mockito.verify;
 
 public class IcmpPingServiceTest
 {
-    @BeforeEach
-    public void setup()
-    {
-        LAST_ICMP_RESULTS.clear();
-    }
-
     @Test
     @SneakyThrows
     public void ping_successfulPing_perfect()
@@ -47,7 +40,7 @@ public class IcmpPingServiceTest
                 Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
                 Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
                 Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
-                                
+                
                 Ping statistics for 127.0.0.1:
                     Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
                 Approximate round trip times in milli-seconds:
@@ -61,17 +54,19 @@ public class IcmpPingServiceTest
             Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
             Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
             Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
-                        
+            
             Ping statistics for 127.0.0.1:
                 Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
             Approximate round trip times in milli-seconds:
                 Minimum = 0ms, Maximum = 0ms, Average = 0ms""";
 
         ReportService reportServiceMock = MockCreateHelper.ReportService_default();
+        IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0)),
             reportServiceMock,
+            icmpPingRepository,
             MockCreateHelper.LocalDateTimeProvider_now_default()
         );
 
@@ -81,7 +76,7 @@ public class IcmpPingServiceTest
             icmpPingService.ping(testedHost);
 
             assertAll(
-                () -> assertThat(LAST_ICMP_RESULTS.get(expectedHost))
+                () -> assertThat(icmpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
                     .isEqualTo(expectedResult),
                 () -> assertThat(logCaptor.getErrorLogs()).isEmpty(),
@@ -132,9 +127,12 @@ public class IcmpPingServiceTest
 
         ReportService reportServiceMock = MockCreateHelper.ReportService_default();
 
+        IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
+
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0)),
             reportServiceMock,
+            icmpPingRepository,
             MockCreateHelper.LocalDateTimeProvider_now_default()
         );
 
@@ -144,7 +142,7 @@ public class IcmpPingServiceTest
             icmpPingService.ping(testedHost);
 
             assertAll(
-                () -> assertThat(LAST_ICMP_RESULTS.get(expectedHost))
+                () -> assertThat(icmpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
                     .isEqualTo(expectedResult),
                 () -> assertThat(logCaptor.getErrorLogs()).isEmpty(),
@@ -195,9 +193,12 @@ public class IcmpPingServiceTest
 
         ReportService reportServiceMock = MockCreateHelper.ReportService_default();
 
+        IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
+
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0)),
             reportServiceMock,
+            icmpPingRepository,
             MockCreateHelper.LocalDateTimeProvider_now_default()
         );
 
@@ -207,7 +208,7 @@ public class IcmpPingServiceTest
             icmpPingService.ping(testedHost);
 
             assertAll(
-                () -> assertThat(LAST_ICMP_RESULTS.get(expectedHost))
+                () -> assertThat(icmpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
                     .isEqualTo(expectedResult),
                 () -> assertThat(logCaptor.getWarnLogs()).containsExactly(expectedWarning),
@@ -258,9 +259,12 @@ public class IcmpPingServiceTest
 
         ReportService reportServiceMock = MockCreateHelper.ReportService_default();
 
+        IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
+
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 1)),
             reportServiceMock,
+            icmpPingRepository,
             MockCreateHelper.LocalDateTimeProvider_now_default()
         );
 
@@ -270,7 +274,7 @@ public class IcmpPingServiceTest
             icmpPingService.ping(testedHost);
 
             assertAll(
-                () -> assertThat(LAST_ICMP_RESULTS.get(expectedHost))
+                () -> assertThat(icmpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
                     .isEqualTo(expectedResult),
                 () -> assertThat(logCaptor.getWarnLogs()).containsExactly(expectedWarning),

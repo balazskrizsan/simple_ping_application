@@ -4,6 +4,7 @@ import com.kbalazsworkds.extensions.ApplicationProperties;
 import com.kbalazsworkds.providers.DurationProvider;
 import com.kbalazsworkds.providers.HttpClientProvider;
 import com.kbalazsworkds.providers.LocalDateTimeProvider;
+import com.kbalazsworkds.repositories.IcmpPingRepository;
 import com.kbalazsworkds.repositories.TcpPingRepository;
 import com.kbalazsworkds.tasks.IcmpPingTask;
 import com.kbalazsworkds.tasks.TcpPingTask;
@@ -24,15 +25,18 @@ public class HostMonitorService
     private final HttpClientProvider httpClientProvider = new HttpClientProvider();
     private final DurationProvider durationProvider = new DurationProvider();
     private final TcpPingRepository tcpPingRepository = new TcpPingRepository();
+    private final IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
     private final ReportService reportService = new ReportService(
         httpClientProvider,
         applicationProperties,
-        tcpPingRepository
+        tcpPingRepository,
+        icmpPingRepository
     );
     private final IcmpPingService icmpPingService = new IcmpPingService(
         processRunService,
         reportService,
+        icmpPingRepository,
         localDateTimeProvider
     );
 

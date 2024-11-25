@@ -3,12 +3,10 @@ package com.kbalazsworkds.services;
 import com.kbalazsworkds.entities.PingResult;
 import com.kbalazsworkds.entities.ProcessRunResponse;
 import com.kbalazsworkds.providers.LocalDateTimeProvider;
+import com.kbalazsworkds.repositories.IcmpPingRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 @Log4j2
@@ -16,9 +14,8 @@ public class IcmpPingService
 {
     private final ProcessRunService processRunService;
     private final ReportService reportService;
+    private final IcmpPingRepository icmpPingRepository;
     private final LocalDateTimeProvider localDateTimeProvider;
-
-    public static final Map<String, PingResult> LAST_ICMP_RESULTS = new ConcurrentHashMap<>();
 
     public void ping(@NonNull String host)
     {
@@ -29,7 +26,7 @@ public class IcmpPingService
             ProcessRunResponse response = processRunService.run("ping", "-n", "5", host);
             boolean hasError = hasError(response);
 
-            LAST_ICMP_RESULTS.put(host, new PingResult(
+            icmpPingRepository.save(host, new PingResult(
                 hasError,
                 localDateTimeProvider.now(),
                 response.result())
