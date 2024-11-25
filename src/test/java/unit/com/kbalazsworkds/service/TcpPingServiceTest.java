@@ -250,7 +250,7 @@ public class TcpPingServiceTest
                 () -> assertThat(tcpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
                     .isEqualTo(expectedResult),
-                () -> assertThat(logCaptor.getErrorLogs()).isNotEmpty(),
+                () -> assertThat(logCaptor.getErrorLogs().getFirst()).startsWith("Failed to ping host:"),
                 () -> assertThat(logCaptor.getWarnLogs()).isEmpty(),
                 () -> verify(reportServiceMock, only()).report(eq(expectedHost))
             );
