@@ -2,12 +2,12 @@ package unit.com.kbalazsworkds.service;
 
 import com.kbalazsworkds.entities.PingResult;
 import com.kbalazsworkds.entities.ProcessRunResponse;
+import com.kbalazsworkds.exceptions.ProcessRunException;
 import com.kbalazsworkds.repositories.IcmpPingRepository;
 import com.kbalazsworkds.repositories.TaskRunRepository;
 import com.kbalazsworkds.services.IcmpPingService;
 import com.kbalazsworkds.services.ProcessRunService;
 import com.kbalazsworkds.services.ReportService;
-import lombok.SneakyThrows;
 import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.Test;
 import unit.com.kbalazsworkds.helpers.MockCreateHelper;
@@ -28,8 +28,7 @@ import static org.mockito.Mockito.when;
 public class IcmpPingServiceTest
 {
     @Test
-    @SneakyThrows
-    public void ping_successfulPing_perfect()
+    public void ping_successfulPing_perfect() throws ProcessRunException
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
@@ -45,7 +44,7 @@ public class IcmpPingServiceTest
                 Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
                 Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
                 Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
-                
+                                
                 Ping statistics for 127.0.0.1:
                     Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
                 Approximate round trip times in milli-seconds:
@@ -59,7 +58,7 @@ public class IcmpPingServiceTest
             Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
             Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
             Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
-            
+                        
             Ping statistics for 127.0.0.1:
                 Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
             Approximate round trip times in milli-seconds:
@@ -96,8 +95,7 @@ public class IcmpPingServiceTest
     }
 
     @Test
-    @SneakyThrows
-    public void ping_runningPing_wontStartNew()
+    public void ping_runningPing_wontStartNew() throws ProcessRunException
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
@@ -136,8 +134,7 @@ public class IcmpPingServiceTest
     }
 
     @Test
-    @SneakyThrows
-    public void ping_20PercentsPacketlossPing_callsReporter()
+    public void ping_20PercentsPacketlossPing_callsReporter() throws ProcessRunException
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
@@ -206,8 +203,7 @@ public class IcmpPingServiceTest
     }
 
     @Test
-    @SneakyThrows
-    public void ping_requestTimedOutPing_callsReporter()
+    public void ping_requestTimedOutPing_callsReporter() throws ProcessRunException
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
@@ -276,8 +272,7 @@ public class IcmpPingServiceTest
     }
 
     @Test
-    @SneakyThrows
-    public void ping_runWithExitCodeNotZero_callsReporter()
+    public void ping_runWithExitCodeNotZero_callsReporter() throws ProcessRunException
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";

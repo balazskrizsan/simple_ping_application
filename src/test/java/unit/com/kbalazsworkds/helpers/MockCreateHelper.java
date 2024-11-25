@@ -1,13 +1,13 @@
 package unit.com.kbalazsworkds.helpers;
 
 import com.kbalazsworkds.entities.ProcessRunResponse;
+import com.kbalazsworkds.exceptions.ProcessRunException;
 import com.kbalazsworkds.extensions.ApplicationProperties;
 import com.kbalazsworkds.providers.DurationProvider;
 import com.kbalazsworkds.providers.LocalDateTimeProvider;
 import com.kbalazsworkds.services.ProcessRunService;
 import com.kbalazsworkds.services.ReportService;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -28,11 +28,10 @@ public class MockCreateHelper
         return mock;
     }
 
-    @SneakyThrows
     public static ProcessRunService ProcessRunService_run_ping(
         @NonNull String host,
         @NonNull ProcessRunResponse mockedResponse
-    )
+    ) throws ProcessRunException
     {
         ProcessRunService mock = mock(ProcessRunService.class);
         when(mock.run("ping", "-n", "5", host)).thenReturn(mockedResponse);
@@ -40,11 +39,10 @@ public class MockCreateHelper
         return mock;
     }
 
-    @SneakyThrows
     public static ProcessRunService ProcessRunService_run_tracert(
         @NonNull String host,
         @NonNull ProcessRunResponse mockedResponse
-    )
+    ) throws ProcessRunException
     {
         ProcessRunService mock = mock(ProcessRunService.class);
         when(mock.run("tracert", host)).thenReturn(mockedResponse);

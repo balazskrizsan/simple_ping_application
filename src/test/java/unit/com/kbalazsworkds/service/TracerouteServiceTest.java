@@ -2,11 +2,11 @@ package unit.com.kbalazsworkds.service;
 
 import com.kbalazsworkds.entities.PingResult;
 import com.kbalazsworkds.entities.ProcessRunResponse;
+import com.kbalazsworkds.exceptions.ProcessRunException;
 import com.kbalazsworkds.repositories.TaskRunRepository;
 import com.kbalazsworkds.repositories.TracerouteRepository;
 import com.kbalazsworkds.services.ProcessRunService;
 import com.kbalazsworkds.services.TracerouteService;
-import lombok.SneakyThrows;
 import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.Test;
 import unit.com.kbalazsworkds.helpers.MockCreateHelper;
@@ -27,8 +27,7 @@ import static org.mockito.Mockito.when;
 public class TracerouteServiceTest
 {
     @Test
-    @SneakyThrows
-    public void trace_runningTrace_wontStartNew()
+    public void trace_runningTrace_wontStartNew() throws ProcessRunException
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
@@ -64,8 +63,7 @@ public class TracerouteServiceTest
     }
 
     @Test
-    @SneakyThrows
-    public void trace_newSuccessfulTask_savesTraceResultToRepository()
+    public void trace_newSuccessfulTask_savesTraceResultToRepository() throws ProcessRunException
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
@@ -109,8 +107,7 @@ public class TracerouteServiceTest
     }
 
     @Test
-    @SneakyThrows
-    public void trace_unknownError_saveErrorLog()
+    public void trace_unknownError_saveErrorLog() throws ProcessRunException
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";

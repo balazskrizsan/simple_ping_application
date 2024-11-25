@@ -10,11 +10,11 @@ import com.kbalazsworkds.providers.HttpClientProvider;
 import com.kbalazsworkds.repositories.IcmpPingRepository;
 import com.kbalazsworkds.repositories.TcpPingRepository;
 import com.kbalazsworkds.services.ReportService;
-import lombok.SneakyThrows;
 import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.Test;
 import unit.com.kbalazsworkds.helpers.MockCreateHelper;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -37,9 +37,8 @@ public class ReportServiceTest
         .create();
 
     @Test
-    @SneakyThrows
     @SuppressWarnings("unchecked")
-    public void report_PostWith200response_perfect()
+    public void report_PostWith200response_perfect() throws IOException, InterruptedException
     {
         // Arrange
         ApplicationProperties applicationProperties = MockCreateHelper.applicationProperties_default();
@@ -96,9 +95,8 @@ public class ReportServiceTest
     }
 
     @Test
-    @SneakyThrows
     @SuppressWarnings("unchecked")
-    public void report_PostWith404response_logsError()
+    public void report_PostWith404response_logsError() throws IOException, InterruptedException
     {
         // Arrange
         ApplicationProperties applicationProperties = MockCreateHelper.applicationProperties_default();
