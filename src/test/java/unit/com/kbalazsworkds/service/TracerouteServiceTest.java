@@ -28,7 +28,7 @@ public class TracerouteServiceTest
 {
     @Test
     @SneakyThrows
-    public void test_runningTrace_wontStartNew()
+    public void trace_runningTrace_wontStartNew()
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
@@ -65,7 +65,7 @@ public class TracerouteServiceTest
 
     @Test
     @SneakyThrows
-    public void test_newSuccessfulTask_savesTraceResultToRepository()
+    public void trace_newSuccessfulTask_savesTraceResultToRepository()
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
@@ -110,7 +110,7 @@ public class TracerouteServiceTest
 
     @Test
     @SneakyThrows
-    public void test_unknownError_saveErrorLog()
+    public void trace_unknownError_saveErrorLog()
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
