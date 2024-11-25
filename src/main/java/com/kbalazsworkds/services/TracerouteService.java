@@ -22,7 +22,7 @@ public class TracerouteService
     {
         log.info("Tracing route: {}", host);
 
-        synchronized (tracerouteRepository)
+        synchronized (taskRunRepository)
         {
             if (taskRunRepository.isRunning(RunTypeEnum.TRACEROUTE, host))
             {

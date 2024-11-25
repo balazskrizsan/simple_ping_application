@@ -36,7 +36,7 @@ public class TcpPingService
     {
         log.info("Ping on host: {}", host);
 
-        synchronized (tcpPingRepository)
+        synchronized (taskRunRepository)
         {
             if (taskRunRepository.isRunning(RunTypeEnum.TCP_PING, host)) // todo: test
             {
