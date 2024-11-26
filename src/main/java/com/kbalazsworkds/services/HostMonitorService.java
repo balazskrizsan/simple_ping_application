@@ -25,7 +25,7 @@ public class HostMonitorService
     {
         log.info("Starting monitoring on hosts: ");
         List<String> hosts = applicationProperties.getPingServiceHosts();
-        hosts.stream().map(String::trim).forEach(log::info);
+        hosts.forEach(log::info);
 
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(hosts.size());
 
