@@ -11,6 +11,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions: # The permissions the surefire test report
+      checks: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -56,6 +59,14 @@ jobs:
           ls -hal ./src
           echo "===========> ls -hal /target:"
           ls -hal ./target
+          echo "===========> ls -hal /target/surefire-reports:"
+          ls -hal ./target/surefire-reports
+
+      - uses: scacap/action-surefire-report@v1
+        if: success() || failure()
+        with:
+          check_name: Surefire test report
+          report_paths: '**/surefire-reports/*.xml'
 
       - name: Temporarily saved jar artifact for 14 days
         uses: actions/upload-artifact@v4
