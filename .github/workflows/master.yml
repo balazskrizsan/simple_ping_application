@@ -1,0 +1,79 @@
+name: Java CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set Release version env variable
+        run: |
+          echo "RELEASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Test and Package with Maven
+        env:
+          PING_SERVICE__APP_LOG_PATH: "logs/app.log"
+          PING_SERVICE__HOSTS: "localhost.balazskrizsan.com, localhost2.balazskrizsan.com, localhost3.balazskrizsan.com"
+          PING_SERVICE__ICMP_DELAY: 5000
+          PING_SERVICE__REPORT_URL: "https://www.postb.in/1732320982251-4400979713536t"
+          PING_SERVICE__TCP_DELAY: 5000
+          PING_SERVICE__TCP_PING_PORT_END_POINT: ":46031/health/200ok"
+          PING_SERVICE__TCP_PROTOCOL: "https"
+          PING_SERVICE__TCP_TIMEOUT: 3000
+          PING_SERVICE__TRACEROUTE_DELAY: 5000
+        run: mvn clean package
+
+      - name: File system info
+        run: |
+          echo "===========> github.workspace var: ${{ github.workspace }}"
+          echo "===========> pwd:"
+          pwd
+          echo "===========> ls -hal:"
+          ls -hal
+          echo "===========> ls -hal /src:"
+          ls -hal ./src
+          echo "===========> ls -hal /target:"
+          ls -hal ./target
+
+      - name: Temporarily saved jar artifact for 14 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar-artifact
+          path: ${{ github.workspace }}/target/original-simple_ping_application-${{ env.RELEASE_VERSION }}.jar
+          retention-days: 14
+
+      - name: Temporarily saved SHADE jar artifact for 14 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: shade-jar-artifact
+          path: ${{ github.workspace }}/target/simple_ping_application-${{ env.RELEASE_VERSION }}.jar
+          retention-days: 14
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          push: true
+          tags: kbalazsworks/simple_ping_application:master,kbalazsworks/simple_ping_application:${{ env.RELEASE_VERSION }}
