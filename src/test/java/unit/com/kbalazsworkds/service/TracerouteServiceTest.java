@@ -17,6 +17,7 @@ import static com.kbalazsworkds.enums.RunTypeEnum.TRACEROUTE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -99,8 +100,10 @@ public class TracerouteServiceTest
             assertAll(
                 () -> assertThat(logCaptor.getWarnLogs()).isEmpty(),
                 () -> assertThat(logCaptor.getErrorLogs()).isEmpty(),
-                () -> verify(processRunServiceMock, only())
-                    .run(eq("tracert"), eq(expectedHost)),
+                () -> verify(processRunServiceMock, only()).run(
+                    argThat(argument -> "tracert".equals(argument) || "traceroute".equals(argument)),
+                    eq(expectedHost)
+                ),
                 () -> assertThat(tracerouteRepository.get(expectedHost)).isEqualTo(expectedResult)
             );
         }
@@ -141,7 +144,10 @@ public class TracerouteServiceTest
             assertAll(
                 () -> assertThat(logCaptor.getWarnLogs()).isEmpty(),
                 () -> assertThat(logCaptor.getErrorLogs().getFirst()).startsWith("Failed to trace host:"),
-                () -> verify(processRunServiceMock, only()).run(eq("tracert"), eq(expectedHost)),
+                () -> verify(processRunServiceMock, only()).run(
+                    argThat(argument -> "tracert".equals(argument) || "traceroute".equals(argument)),
+                    eq(expectedHost)
+                ),
                 () -> assertThat(tracerouteRepository.get(expectedHost)).isEqualTo(expectedResult)
             );
         }
