@@ -1,0 +1,1 @@
+kubectl.exe apply -k .

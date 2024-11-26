@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: simple-ping-application--master
+  name: simple-ping-application-app
+  labels:
+    app: simple-ping-application-app-label
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: simple-ping-application-app
+  template:
+    metadata:
+      labels:
+        app: simple-ping-application-app-label
+        service: simple-ping-application-app
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: simple-ping-application-app
+          image: kbalazsworks/simple_ping_application:master
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+            limits:
+              cpu: 400m
+              memory: 400Mi
+          env:
+            - name: PING_SERVICE__APP_LOG_PATH
+              valueFrom:
+                secretKeyRef:
+                  name: ping-secrets
+                  key: PING_SERVICE__APP_LOG_PATH
+            - name: PING_SERVICE__HOSTS
+              valueFrom:
+                secretKeyRef:
+                  name: ping-secrets
+                  key: PING_SERVICE__HOSTS
+            - name: PING_SERVICE__ICMP_DELAY
+              valueFrom:
+                secretKeyRef:
+                  name: ping-secrets
+                  key: PING_SERVICE__ICMP_DELAY
+            - name: PING_SERVICE__REPORT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ping-secrets
+                  key: PING_SERVICE__REPORT_URL
+            - name: PING_SERVICE__TCP_DELAY
+              valueFrom:
+                secretKeyRef:
+                  name: ping-secrets
+                  key: PING_SERVICE__TCP_DELAY
+            - name: PING_SERVICE__TCP_PING_PORT_END_POINT
+              valueFrom:
+                secretKeyRef:
+                  name: ping-secrets
+                  key: PING_SERVICE__TCP_PING_PORT_END_POINT
+            - name: PING_SERVICE__TCP_PROTOCOL
+              valueFrom:
+                secretKeyRef:
+                  name: ping-secrets
+                  key: PING_SERVICE__TCP_PROTOCOL
+            - name: PING_SERVICE__TCP_TIMEOUT
+              valueFrom:
+                secretKeyRef:
+                  name: ping-secrets
+                  key: PING_SERVICE__TCP_TIMEOUT
+            - name: PING_SERVICE__TRACEROUTE_DELAY
+              valueFrom:
+                secretKeyRef:
+                  name: ping-secrets
+                  key: PING_SERVICE__TRACEROUTE_DELAY
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: simple-ping-application--master
+  name: simple-ping-application-service
+  labels:
+    app: simple-ping-application-app-label
+    service: simple-ping-application-app-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: simple-ping-application-app-label
+    service: simple-ping-application-app
+  ports:
+    - name: "https"
+      protocol: TCP
+      port: 8085
+      targetPort: 8080
