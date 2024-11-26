@@ -46,6 +46,7 @@ public class MockCreateHelper
     {
         ProcessRunService mock = mock(ProcessRunService.class);
         when(mock.run("tracert", host)).thenReturn(mockedResponse);
+        when(mock.run("traceroute", host)).thenReturn(mockedResponse);
 
         return mock;
     }
