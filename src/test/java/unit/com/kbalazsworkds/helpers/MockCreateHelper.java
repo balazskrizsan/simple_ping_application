@@ -66,6 +66,7 @@ public class MockCreateHelper
         when(ap.getPingServiceHosts()).thenReturn(List.of("localhost1", "localhost2", "localhost3"));
         when(ap.getPingServiceIcmpDelay()).thenReturn(1000);
         when(ap.getPingServiceReportUrl()).thenReturn("http://localhost:8080/report");
+        when(ap.getPingServiceTracerouteDelay()).thenReturn(1000);
 
         return ap;
     }
