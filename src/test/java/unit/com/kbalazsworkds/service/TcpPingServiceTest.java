@@ -19,6 +19,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import static com.kbalazsworkds.enums.RunTypeEnum.TCP_PING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,7 +64,7 @@ public class TcpPingServiceTest
 
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
         TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
-        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+        when(taskRunRepositoryMock.isRunning(eq(TCP_PING), eq(expectedHost))).thenReturn(false);
 
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
@@ -117,7 +118,7 @@ public class TcpPingServiceTest
 
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
         TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
-        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(true);
+        when(taskRunRepositoryMock.isRunning(eq(TCP_PING), eq(expectedHost))).thenReturn(true);
 
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
@@ -174,7 +175,7 @@ public class TcpPingServiceTest
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
 
         TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
-        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+        when(taskRunRepositoryMock.isRunning(eq(TCP_PING), eq(expectedHost))).thenReturn(false);
 
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
@@ -233,7 +234,7 @@ public class TcpPingServiceTest
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
 
         TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
-        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+        when(taskRunRepositoryMock.isRunning(eq(TCP_PING), eq(expectedHost))).thenReturn(false);
 
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
@@ -292,7 +293,7 @@ public class TcpPingServiceTest
         TcpPingRepository tcpPingRepository = new TcpPingRepository();
 
         TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
-        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+        when(taskRunRepositoryMock.isRunning(eq(TCP_PING), eq(expectedHost))).thenReturn(false);
 
         TcpPingService tcpPingService = new TcpPingService(
             reportServiceMock,
