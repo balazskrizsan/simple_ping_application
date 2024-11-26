@@ -36,7 +36,10 @@ public class TracerouteService
 
         try
         {
-            ProcessRunResponse response = processRunService.run("tracert", host);
+            String osName = System.getProperty("os.name").toLowerCase();
+            String command = osName.contains("win") ? "tracert" : "traceroute";
+
+            ProcessRunResponse response = processRunService.run(command, host);
 
             tracerouteRepository.save(host, new PingResult(
                 false,
