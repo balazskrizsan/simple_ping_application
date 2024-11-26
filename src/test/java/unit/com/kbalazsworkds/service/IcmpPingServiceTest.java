@@ -14,9 +14,9 @@ import unit.com.kbalazsworkds.helpers.MockCreateHelper;
 
 import java.time.LocalDateTime;
 
+import static com.kbalazsworkds.enums.RunTypeEnum.ICMP_PING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -44,7 +44,7 @@ public class IcmpPingServiceTest
                 Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
                 Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
                 Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
-                                
+                
                 Ping statistics for 127.0.0.1:
                     Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
                 Approximate round trip times in milli-seconds:
@@ -58,7 +58,7 @@ public class IcmpPingServiceTest
             Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
             Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
             Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
-                        
+            
             Ping statistics for 127.0.0.1:
                 Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
             Approximate round trip times in milli-seconds:
@@ -68,7 +68,7 @@ public class IcmpPingServiceTest
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
         TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
-        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+        when(taskRunRepositoryMock.isRunning(eq(ICMP_PING), eq(expectedHost))).thenReturn(false);
 
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0)),
@@ -95,20 +95,60 @@ public class IcmpPingServiceTest
     }
 
     @Test
-    public void ping_runningPing_wontStartNew() throws ProcessRunException
+    public void ping_unexpectedError_writesLog() throws ProcessRunException
     {
         // Arrange
         String testedHost = "localhost.balazskrizsan.com";
 
-        String mockedResponse = "ping";
-
-        String exceptedLogStartsWith = "Ping is already running on host:";
+        String expectedHost = "localhost.balazskrizsan.com";
 
         ReportService reportServiceMock = MockCreateHelper.ReportService_default();
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
         TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
-        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(true);
+        when(taskRunRepositoryMock.isRunning(eq(ICMP_PING), eq(expectedHost))).thenReturn(false);
+
+        ProcessRunService processRunServiceMock = mock(ProcessRunService.class);
+        when(processRunServiceMock.run(anyString())).thenThrow(new RuntimeException("error"));
+
+        IcmpPingService icmpPingService = new IcmpPingService(
+            processRunServiceMock,
+            reportServiceMock,
+            icmpPingRepository,
+            MockCreateHelper.LocalDateTimeProvider_now_default(),
+            taskRunRepositoryMock
+        );
+
+        // Act
+        try (LogCaptor logCaptor = LogCaptor.forClass(IcmpPingService.class))
+        {
+            icmpPingService.ping(testedHost);
+
+            // Assert
+            assertAll(
+                () -> assertThat(logCaptor.getErrorLogs().getFirst()).startsWith("Failed to ping host:"),
+                () -> assertThat(logCaptor.getWarnLogs()).isEmpty(),
+                () -> verify(reportServiceMock, only()).report(eq(expectedHost))
+            );
+        }
+    }
+
+    @Test
+    public void ping_runningPing_wontStartNew() throws ProcessRunException
+    {
+        // Arrange
+        String testedHost = "localhost.balazskrizsan.com";
+
+        String exceptedLogStartsWith = "Ping is already running on host:";
+        String expectedHost = "localhost.balazskrizsan.com";
+
+        String mockedResponse = "ping";
+
+        ReportService reportServiceMock = MockCreateHelper.ReportService_default();
+        IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
+
+        TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
+        when(taskRunRepositoryMock.isRunning(eq(ICMP_PING), eq(expectedHost))).thenReturn(true);
 
         ProcessRunService processRunServiceMock = MockCreateHelper
             .ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0));
@@ -121,11 +161,12 @@ public class IcmpPingServiceTest
             taskRunRepositoryMock
         );
 
-        // Act - Assert
+        // Act
         try (LogCaptor logCaptor = LogCaptor.forClass(IcmpPingService.class))
         {
             icmpPingService.ping(testedHost);
 
+            // Assert
             assertAll(
                 () -> assertThat(logCaptor.getInfoLogs().get(1)).startsWith(exceptedLogStartsWith),
                 () -> verify(processRunServiceMock, never()).run(anyString())
@@ -176,7 +217,7 @@ public class IcmpPingServiceTest
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
         TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
-        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+        when(taskRunRepositoryMock.isRunning(eq(ICMP_PING), eq(expectedHost))).thenReturn(false);
 
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0)),
@@ -186,11 +227,12 @@ public class IcmpPingServiceTest
             taskRunRepositoryMock
         );
 
-        // Act - Assert
+        // Act
         try (LogCaptor logCaptor = LogCaptor.forClass(IcmpPingService.class))
         {
             icmpPingService.ping(testedHost);
 
+            // Assert
             assertAll(
                 () -> assertThat(icmpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
@@ -245,7 +287,7 @@ public class IcmpPingServiceTest
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
         TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
-        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+        when(taskRunRepositoryMock.isRunning(eq(ICMP_PING), eq(expectedHost))).thenReturn(false);
 
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 0)),
@@ -255,11 +297,12 @@ public class IcmpPingServiceTest
             taskRunRepositoryMock
         );
 
-        // Act - Assert
+        // Act
         try (LogCaptor logCaptor = LogCaptor.forClass(IcmpPingService.class))
         {
             icmpPingService.ping(testedHost);
 
+            // Assert
             assertAll(
                 () -> assertThat(icmpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()
@@ -314,7 +357,7 @@ public class IcmpPingServiceTest
         IcmpPingRepository icmpPingRepository = new IcmpPingRepository();
 
         TaskRunRepository taskRunRepositoryMock = mock(TaskRunRepository.class);
-        when(taskRunRepositoryMock.isRunning(any(), any())).thenReturn(false);
+        when(taskRunRepositoryMock.isRunning(eq(ICMP_PING), eq(expectedHost))).thenReturn(false);
 
         IcmpPingService icmpPingService = new IcmpPingService(
             MockCreateHelper.ProcessRunService_run_ping(testedHost, new ProcessRunResponse(mockedResponse, 1)),
@@ -324,11 +367,12 @@ public class IcmpPingServiceTest
             taskRunRepositoryMock
         );
 
-        // Act - Assert
+        // Act
         try (LogCaptor logCaptor = LogCaptor.forClass(IcmpPingService.class))
         {
             icmpPingService.ping(testedHost);
 
+            // Assert
             assertAll(
                 () -> assertThat(icmpPingRepository.get(expectedHost))
                     .usingRecursiveComparison()

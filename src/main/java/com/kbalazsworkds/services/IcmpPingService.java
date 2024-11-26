@@ -59,7 +59,14 @@ public class IcmpPingService
         catch (Exception e)
         {
             log.error("Failed to ping host: {}", host, e);
-            // @todo: set last result as unknown and call report
+
+            icmpPingRepository.save(host, new PingResult(
+                true,
+                localDateTimeProvider.now(),
+                "Unknown error, check the app log."
+            ));
+
+            reportService.report(host);
         }
         finally
         {
