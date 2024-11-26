@@ -55,7 +55,7 @@ https://hub.docker.com/repository/docker/kbalazsworks/simple_ping_application/ta
 ### Available on the configured file path in this format
 
 ```
-2024-11-25 02:06:12 [pool-2-thread-1] WARN  com.kbalazsworkds.services.ReportService - Ping report: ...
+2024-11-25 02:06:12 [pool-2-thread-1] WARN  com.kbalazsworks.simple_ping_application.services.ReportService - Ping report: ...
 ```
 
 ## Kubernetes + Windows + Minikube + Kustomize run with master
