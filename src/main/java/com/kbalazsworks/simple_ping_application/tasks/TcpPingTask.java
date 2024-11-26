@@ -15,6 +15,7 @@ public class TcpPingTask implements Runnable
     public void run()
     {
         log.info("Tcp ping task started");
+
         tcpPingService.ping(host);
     }
 }

@@ -10,13 +10,13 @@ import java.util.List;
 @Log4j2
 public class ApplicationProperties
 {
+    private final List<String> pingServiceHosts;
+    private final String pingServiceReportUrl;
+    private final int pingServiceIcmpDelay;
     private final int pingServiceTcpDelay;
     private final int pingServiceTcpTimeout;
     private final String pingServiceTcpProtocol;
     private final String pingServiceTcpPingPortEndpoint;
-    private final List<String> pingServiceHosts;
-    private final int pingServiceIcmpDelay;
-    private final String pingServiceReportUrl;
     private final int pingServiceTracerouteDelay;
 
     public ApplicationProperties()
@@ -41,6 +41,5 @@ public class ApplicationProperties
         log.info(" - env var: pingServiceTcpProtocol: {}", pingServiceTcpProtocol);
         log.info(" - env var: pingServiceTcpPingPortEndpoint: {}", pingServiceTcpPingPortEndpoint);
         log.info(" - env var: pingServiceTracerouteDelay: {}", pingServiceTracerouteDelay);
-
     }
 }
