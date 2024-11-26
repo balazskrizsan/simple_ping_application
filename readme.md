@@ -6,7 +6,7 @@
 * Intellij IDEA
 * Java 23
 * No framework used, except JUnit and Mockito
-* Pings where tested on this app locally: https://github.com/balazskrizsan/smart_scrum_poker_backend_native
+* Pings were tested on this app locally: https://github.com/balazskrizsan/smart_scrum_poker_backend_native
 * Dockerfile: openjdk:21-jdk-slim
 
 # Artifacts
@@ -17,6 +17,10 @@ Click a build, and scroll down to download the .jar files (14 days retention):
 
 https://github.com/balazskrizsan/simple_ping_application/actions
 
+## Surefire report examples
+
+* Successful report: https://github.com/balazskrizsan/simple_ping_application/actions/runs/12039488488/job/33567405916
+* Failed report: https://github.com/balazskrizsan/simple_ping_application/actions/runs/12039549529/job/33567599389 
 
 ## Docker Hub: Built docker images by tags
 
@@ -25,7 +29,6 @@ https://hub.docker.com/repository/docker/kbalazsworks/simple_ping_application/ta
 # Application
 
 ## Environment variables
-
 
 | Key                                    | Example value                                                                           |
 |----------------------------------------|-----------------------------------------------------------------------------------------|
@@ -38,7 +41,6 @@ https://hub.docker.com/repository/docker/kbalazsworks/simple_ping_application/ta
 | PING_SERVICE__TCP_PROTOCOL             | https                                                                                   |
 | PING_SERVICE__TCP_TIMEOUT              | 3000                                                                                    |
 | PING_SERVICE__TRACEROUTE_DELAY         | 5000                                                                                    |
-
 
 ## Send to the configured host
 
@@ -79,6 +81,7 @@ https://hub.docker.com/repository/docker/kbalazsworks/simple_ping_application/ta
 ## App run:
 
 ### Environment variables example (copy and paste):
+
 ```
 PING_SERVICE__APP_LOG_PATH=logs/app.log;PING_SERVICE__HOSTS=localhost.balazskrizsan.com, localhost2.balazskrizsan.com, localhost3.balazskrizsan.com;PING_SERVICE__ICMP_DELAY=5000;PING_SERVICE__REPORT_URL=https://www.postb.in/1732320982251-4400979713536t;PING_SERVICE__TCP_DELAY=5000;PING_SERVICE__TCP_PING_PORT_END_POINT=:46031/health/200ok;PING_SERVICE__TCP_PROTOCOL=https;PING_SERVICE__TCP_TIMEOUT=3000;PING_SERVICE__TRACEROUTE_DELAY=5000
 ```
@@ -86,6 +89,7 @@ PING_SERVICE__APP_LOG_PATH=logs/app.log;PING_SERVICE__HOSTS=localhost.balazskriz
 ## Test run:
 
 ### Environment variables example (copy and paste):
+
 ```
 PING_SERVICE__APP_LOG_PATH=logs/app.log;PING_SERVICE__HOSTS=localhost.balazskrizsan.com, localhost2.balazskrizsan.com, localhost3.balazskrizsan.com;PING_SERVICE__ICMP_DELAY=5000;PING_SERVICE__REPORT_URL=https://www.postb.in/1732320982251-4400979713536t;PING_SERVICE__TCP_DELAY=5000;PING_SERVICE__TCP_PING_PORT_END_POINT=:46031/health/200ok;PING_SERVICE__TCP_PROTOCOL=https;PING_SERVICE__TCP_TIMEOUT=3000;PING_SERVICE__TRACEROUTE_DELAY=5000
 ```
